@@ -16,8 +16,17 @@ END ENTITY rp_top;
 ARCHITECTURE Structural OF rp_top IS
 ----------------------------------------------------------------------------------
     
-    signal CE_100HZ : STD_LOGIC;
-
+    signal CE_100HZ         : STD_LOGIC;
+    signal CE_1000HZ        : STD_LOGIC;
+    
+    signal SIG_CNT_RESET    : STD_LOGIC;
+    signal SIG_CNT_ENABLE   : STD_LOGIC;
+    signal SIG_DISP_ENABLE  : STD_LOGIC;    
+    
+    signal SIG_BTN_S_S      : STD_LOGIC;         
+    signal SIG_BTN_L_C      : STD_LOGIC;  
+    
+    constant DEBOUNCE_TIME  : INTEGER := 40;
 
     COMPONENT seg_disp_driver
         PORT(
@@ -58,6 +67,32 @@ ARCHITECTURE Structural OF rp_top IS
             CNT_3               : OUT   STD_LOGIC_VECTOR(3 DOWNTO 0)
         );
     END COMPONENT bcd_counter;  
+    
+    COMPONENT stopwatch_fsm
+        PORT (
+            CLK                 : IN    STD_LOGIC;
+            BTN_S_S             : IN    STD_LOGIC;
+            BTN_L_C             : IN    STD_LOGIC;
+            CNT_RESET           : OUT   STD_LOGIC;
+            CNT_ENABLE          : OUT   STD_LOGIC;
+            DISP_ENABLE         : OUT   STD_LOGIC
+        );
+    END COMPONENT stopwatch_fsm;
+    
+    COMPONENT btn_in
+        GENERIC (
+            G_DEB_PERIOD        : POSITIVE := 3
+        );
+        PORT (
+            CLK                 : IN    STD_LOGIC;
+            CE                  : IN    STD_LOGIC;
+            BTN                 : IN    STD_LOGIC;
+            BTN_DEBOUNCED       : OUT   STD_LOGIC;
+            BTN_EDGE_POS        : OUT   STD_LOGIC;
+            BTN_EDGE_NEG        : OUT   STD_LOGIC;
+            BTN_EDGE_ANY        : OUT   STD_LOGIC
+        );
+    END COMPONENT btn_in;
 
   ------------------------------------------------------------------------------
 
@@ -101,39 +136,88 @@ BEGIN
 
   --------------------------------------------------------------------------------
   -- clock enable generator
-  ce_gen_i : ce_gen
-      GENERIC MAP(
-          G_DIV_FACT          => 500000
-      )
-      PORT MAP(
-          CLK                         => CLK,
-          SRST                        => BTN(0),
-          CE                          => '1',
-          CE_O                        => CE_100HZ
-      );
-
+    ce_gen_1 : ce_gen
+        GENERIC MAP (
+            G_DIV_FACT                  => 500000
+        )
+        PORT MAP (
+            CLK                         => CLK,
+            SRST                        => '0',
+            CE                          => '1',
+            CE_O                        => CE_100HZ
+        );
+      
+    ce_gen_2 : ce_gen
+        GENERIC MAP (
+            G_DIV_FACT                  => 50000
+        )
+        PORT MAP (
+            CLK                         => CLK,
+            SRST                        => '0',
+            CE                          => '1',
+            CE_O                        => CE_1000HZ
+        );
 
   --------------------------------------------------------------------------------
   -- button input module
+    btn_in_1 : btn_in
+        GENERIC MAP (
+            G_DEB_PERIOD       => DEBOUNCE_TIME
+        )
+        PORT MAP (
+            CLK                => CLK,
+            CE                 => CE_1000HZ,
+            BTN                => BTN(0),
+            BTN_DEBOUNCED      => open,
+            BTN_EDGE_POS       => SIG_BTN_S_S,
+            BTN_EDGE_NEG       => open,
+            BTN_EDGE_ANY       => open
+        );
 
-
+    btn_in_2 : btn_in
+        GENERIC MAP (
+            G_DEB_PERIOD        => DEBOUNCE_TIME
+        )
+        PORT MAP (
+            CLK                  => CLK,  
+            CE                   => CE_1000HZ,  
+            BTN                  => BTN(3),  
+            BTN_DEBOUNCED        => open,  
+            BTN_EDGE_POS         => SIG_BTN_L_C,  
+            BTN_EDGE_NEG         => open,  
+            BTN_EDGE_ANY         => open 
+        );
 
   --------------------------------------------------------------------------------
   -- stopwatch module (4-decade BCD counter)
   bcd_counter_i : bcd_counter
       PORT MAP (
-          CLK                         => clk,
+          CLK                         => CLK,
           CE_100HZ                    => CE_100HZ,  --------------------------------------------------------------------------------
-          CNT_ENABLE                  => SW(1),  -- stopwatch control FSM
-          DISP_ENABLE                 => SW(2),
-          CNT_RESET                   => BTN(0),
+          CNT_ENABLE                  => SIG_CNT_ENABLE,  -- stopwatch control FSM
+          DISP_ENABLE                 => SIG_DISP_ENABLE,
+          CNT_RESET                   => SIG_CNT_RESET,
           CNT_0                       => cnt_0,
           CNT_1                       => cnt_1,  --------------------------------------------------------------------------------
           CNT_2                       => cnt_2,  -- LED connection
           CNT_3                       => cnt_3
       );  
       
-      LED <= cnt_3 & cnt_2;
+      -- LED <= cnt_3 & cnt_2;
+      
+  --------------------------------------------------------------------------------
+  -- stopwatch finite state machine
+    stopwatch_fsm_i : stopwatch_fsm
+        PORT MAP (
+            CLK                       => CLK,
+            BTN_S_S                   => SIG_BTN_S_S,
+            BTN_L_C                   => SIG_BTN_L_C,
+            CNT_RESET                 => SIG_CNT_RESET,
+            CNT_ENABLE                => SIG_CNT_ENABLE,
+            DISP_ENABLE               => SIG_DISP_ENABLE
+        );
+      
+
 
 ----------------------------------------------------------------------------------
 END ARCHITECTURE Structural;
