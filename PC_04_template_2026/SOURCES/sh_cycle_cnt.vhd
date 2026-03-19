@@ -57,22 +57,22 @@ begin
         if rising_edge(CLK) then
             if (SRST = '1') then
                 CNT_DIV <= (others => '0');
-                CARRY   <= '0';
             elsif (CE = '1') then
                 if (CNT_DIV >= (N_CYCLE - 1)) then
-                    CNT_DIV <= (others => '0');
-                    CARRY   <= '0';               
+                    CNT_DIV <= (others => '0');              
                 else
-                    -- State before overflow
-                    if (CNT_DIV = (N_CYCLE - 2)) then
-                        CARRY   <= '1'; 
-                    else
-                        CARRY   <= '0';
-                    end if;
-                    
                     CNT_DIV <= CNT_DIV + 1;
                 end if;
             end if;
+        end if;
+    end process;
+    
+    process (CNT_DIV)
+    begin
+        CARRY <= '0';
+        
+        if (CNT_DIV = (N_CYCLE - 1)) then
+            CARRY   <= '1'; 
         end if;
     end process;
     
