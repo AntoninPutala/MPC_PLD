@@ -80,7 +80,7 @@ BEGIN
 
   btn_in_i : btn_in
   GENERIC MAP(
-    G_DEB_PERIOD                => 6
+    G_DEB_PERIOD                => 15
   )
   PORT MAP(
     CLK                         => clk,
