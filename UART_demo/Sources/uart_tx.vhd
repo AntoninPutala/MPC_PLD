@@ -50,9 +50,11 @@ TYPE t_state IS (ST_IDLE, ST_LOAD, ST_WAIT_EN, ST_START, ST_BIT0, ST_BIT1, ST_BI
 SIGNAL pres_st : t_state := ST_IDLE;
 SIGNAL next_st : t_state; 
 
-SIGNAL sig_tx_busy     : STD_LOGIC;
-SIGNAL sig_tx_data_out : STD_LOGIC;
-SIGNAL sig_data_in     : STD_LOGIC_VECTOR (DATA_IN'RANGE) := (others => '0');
+SIGNAL sig_tx_busy         : STD_LOGIC;
+SIGNAL sig_tx_data_out     : STD_LOGIC;
+SIGNAL sig_tx_busy_reg     : STD_LOGIC := '0';
+SIGNAL sig_tx_data_out_reg : STD_LOGIC := '1';
+SIGNAL sig_data_in         : STD_LOGIC_VECTOR (DATA_IN'RANGE) := (others => '0');
 
 begin
 
@@ -116,7 +118,7 @@ BEGIN
 END PROCESS;
 
 -- Output mux
-PROCESS (pres_st)
+PROCESS (pres_st, sig_data_in)
 BEGIN
     -- default assignment
     sig_tx_data_out <= '1';
@@ -159,9 +161,13 @@ END PROCESS;
 PROCESS (CLK)
 BEGIN
     IF rising_edge(CLK) THEN
-        TX_DATA_OUT <= sig_tx_data_out;  
-        TX_BUSY     <= sig_tx_busy; 
+        sig_tx_busy_reg     <= sig_tx_busy;
+        sig_tx_data_out_reg <= sig_tx_data_out; 
     END IF;
 END PROCESS;
+   
+-- outputs
+TX_DATA_OUT <= sig_tx_data_out_reg;  
+TX_BUSY     <= sig_tx_busy_reg ; 
 
 end Behavioral;

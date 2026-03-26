@@ -58,6 +58,9 @@ set_property PACKAGE_PIN M15 [get_ports {DISP_DIG[3]}]
 set_property PACKAGE_PIN M14 [get_ports {DISP_DIG[4]}]
 set_property PACKAGE_PIN K16 [get_ports {DISP_DIG[0]}]
 
+# USB UART interface
+set_property PACKAGE_PIN G17 [get_ports UART_TXD]
+set_property IOSTANDARD LVCMOS33 [get_ports UART_TXD]
 
 # ------------------------------------------------------------------------------ #
 # 50 MHz clock (shield oscillator)
