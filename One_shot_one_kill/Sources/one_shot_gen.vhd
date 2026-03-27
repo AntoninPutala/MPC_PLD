@@ -31,9 +31,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+-- EARLY_REACT = '0' - ignore
+--             = '1' - new start
 entity one_shot_gen is
     Generic (
-        IMPULSE_LEN : POSITIVE := 4
+        IMPULSE_LEN : POSITIVE  := 4;
+        EARLY_REACT : STD_LOGIC := '0';
+        GUARD_LEN   : POSITIVE  := 4
         );
     Port ( 
         CLK        : in  STD_LOGIC;
@@ -48,13 +52,20 @@ end one_shot_gen;
 
 architecture Behavioral of one_shot_gen is
     
-    SIGNAL cnt_trig      : STD_LOGIC := '0';
-    SIGNAL finished      : STD_LOGIC := '0';
-    SIGNAL cnt_carry     : STD_LOGIC := '0';
-    SIGNAL impulse       : STD_LOGIC := '0';
-    SIGNAL next_impulse  : STD_LOGIC;
-    SIGNAL next_cnt_trig : STD_LOGIC;
-    SIGNAL next_finished : STD_LOGIC;
+    SIGNAL cnt_trig         : STD_LOGIC := '0';
+    SIGNAL cnt_trig_gr      : STD_LOGIC := '0';
+    SIGNAL cnt_rst          : STD_LOGIC;
+    SIGNAL cnt_rst_gr       : STD_LOGIC;
+    SIGNAL finished         : STD_LOGIC := '0';
+    SIGNAL cnt_carry        : STD_LOGIC := '0';
+    SIGNAL cnt_carry_gr     : STD_LOGIC := '0';
+    SIGNAL pulse_bl         : STD_LOGIC := '0';
+    SIGNAL impulse          : STD_LOGIC := '0';
+    SIGNAL next_impulse     : STD_LOGIC;
+    SIGNAL next_cnt_trig    : STD_LOGIC;
+    SIGNAL next_cnt_trig_gr : STD_LOGIC;
+    SIGNAL next_finished    : STD_LOGIC; 
+    SIGNAL next_pulse_bl   : STD_LOGIC;
     
     COMPONENT ce_gen
         GENERIC (
@@ -70,23 +81,36 @@ architecture Behavioral of one_shot_gen is
     
 begin
 
-    ce_gen_i : ce_gen
+    ce_gen_1 : ce_gen
        Generic map (
            G_DIV_FACT => IMPULSE_LEN
        )
        Port map (
            CLK        => CLK,
-           SRST       => SRST,
+           SRST       => cnt_rst,
            CE         => cnt_trig,
            CE_O       => cnt_carry
+       );
+       
+    ce_gen_2 : ce_gen
+       Generic map (
+           G_DIV_FACT => GUARD_LEN
+       )
+       Port map (
+           CLK        => CLK,
+           SRST       => cnt_rst_gr,
+           CE         => cnt_trig_gr,
+           CE_O       => cnt_carry_gr
        );
        
     PROCESS (CLK)
     BEGIN
         IF rising_edge(CLK) THEN
-            impulse  <= next_impulse;   
-            cnt_trig <= next_cnt_trig;
-            finished <= next_finished;
+            impulse     <= next_impulse;   
+            cnt_trig    <= next_cnt_trig;
+            finished    <= next_finished;
+            pulse_bl    <= next_pulse_bl;
+            cnt_trig_gr <= next_cnt_trig_gr;
         END IF;
     END PROCESS;
     
@@ -116,22 +140,71 @@ begin
         END IF;
     END PROCESS;
     
-    PROCESS (SRST, CE, impulse, next_impulse)
+    PROCESS (SRST, CE, pulse_bl)
+    BEGIN
+        next_cnt_trig_gr <= '0';
+        
+        IF (SRST = '1') THEN
+            next_cnt_trig <= '0';
+        ELSIF (CE = '1') THEN
+            next_cnt_trig <= pulse_bl;
+        END IF;
+    END PROCESS;
+    
+    PROCESS (SRST, CE, impulse, next_impulse, pulse_bl)
     BEGIN
         next_finished <= finished;
+        next_pulse_bl <= pulse_bl;
         
         IF (SRST = '1') THEN
             next_finished <= '0';
+            next_pulse_bl <= '0';
         ELSIF (CE = '1') THEN
             IF ((impulse = '1') and (next_impulse) = '0') THEN
                 next_finished <= '1';  
+                next_pulse_bl <= '1';  
+            ELSIF (pulse_bl = '1') THEN
+                IF (cnt_carry_gr = '1') THEN
+                    next_pulse_bl <= '0';
+                END IF;
+                
+                next_finished <= '0'; 
             ELSE
                 next_finished <= '0';  
             END IF;
         END IF;
     END PROCESS;
     
-    READY_O    <= NOT (impulse OR finished);
+    -- New start logic
+    PROCESS (SRST, CE, START_I, impulse)
+    BEGIN
+        cnt_rst <= '0';
+        
+        IF (SRST = '1') THEN 
+            cnt_rst <= '1';
+        ELSIF (impulse = '0') THEN
+            cnt_rst <= '1';
+        ELSIF (EARLY_REACT = '1') THEN
+            IF ((impulse = '1') and (START_I = '1')) THEN 
+                cnt_rst <= '1';
+            END IF;
+        END IF;
+    END PROCESS;
+    
+    PROCESS (SRST, impulse)
+    BEGIN
+        cnt_rst_gr <= '0';
+        
+        IF (SRST = '1') THEN 
+            cnt_rst_gr <= '1';
+        ELSIF (EARLY_REACT = '1') THEN
+            cnt_rst_gr <= '1';
+        ELSIF (impulse = '1') THEN
+            cnt_rst_gr <= '1';
+        END IF;
+    END PROCESS;
+    
+    READY_O    <= NOT (impulse OR finished OR pulse_bl);
     
     IMPULSE_O  <= impulse;
     FINISHED_O <= finished;

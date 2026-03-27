@@ -1,3 +1,4 @@
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -22,7 +23,9 @@ architecture behavior of one_shot_gen_tb is
 
     component one_shot_gen
     generic (
-        IMPULSE_LEN : POSITIVE := 4
+        IMPULSE_LEN : POSITIVE := 4;
+        EARLY_REACT : STD_LOGIC := '1';
+        GUARD_LEN   : POSITIVE  := 4
     );
     port(
         CLK        : in  STD_LOGIC;
@@ -48,7 +51,9 @@ begin
 
     uut: one_shot_gen
     generic map (
-        IMPULSE_LEN => 4
+        IMPULSE_LEN => 4,
+        EARLY_REACT => '0',
+        GUARD_LEN   => 2
     )
     port map (
         CLK        => CLK,
@@ -88,19 +93,19 @@ begin
         wait for 20 ns;
         
         START_I <= '1';
-        wait for 5 * CLK_PERIOD;
+        wait for 4 * CLK_PERIOD;
         START_I <= '0';
         
         wait for 100 ns;
         
         START_I <= '1';
-        wait for 5 * CLK_PERIOD;
+        wait for 4 * CLK_PERIOD;
         START_I <= '0';
         
-        wait for 1000 ns;
+        wait for 500 ns;
         
         START_I <= '1';
-        wait for 5 * CLK_PERIOD;
+        wait for 4 * CLK_PERIOD;
         START_I <= '0';
         
         wait;
