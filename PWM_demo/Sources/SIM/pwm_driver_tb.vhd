@@ -2,6 +2,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use WORK.PKG_CONSTANTS.ALL;
+use WORK.PKG_TYPES.ALL;
 ----------------------------------------------------------------------------------
 ENTITY pwm_driver_tb IS
 END pwm_driver_tb;
@@ -11,44 +13,56 @@ ARCHITECTURE Behavioral OF pwm_driver_tb IS
 
     COMPONENT pwm_driver
         Generic (
-            CNT_WIDTH           : INTEGER := 4
+            G_RES : INTEGER := 8;
+            G_NCH : INTEGER := 8
+        );
+        Port ( 
+            CLK       : in  STD_LOGIC;
+            PWM_REF   : in  type_pwm_ref;
+            SRST      : in STD_LOGIC;
+            CE        : in STD_LOGIC;
+            PWM_OUT   : out STD_LOGIC_VECTOR ((G_NCH - 1) DOWNTO 0);
+            CNT_OUT   : out STD_LOGIC_VECTOR ((G_RES - 1) DOWNTO 0)
+        );
+    END COMPONENT;
+    
+    COMPONENT ce_gen
+        GENERIC (
+            G_DIV_FACT          : POSITIVE := 2
         );
         PORT (
             CLK                 : IN  STD_LOGIC;
-            PWM_REF_7           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_6           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_5           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_4           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_3           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_2           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_1           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_REF_0           : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-            PWM_OUT             : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
-            CNT_OUT             : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
+            SRST                : IN  STD_LOGIC;
+            CE                  : IN  STD_LOGIC;
+            CE_O                : OUT STD_LOGIC 
         );
-    END COMPONENT;
+    END COMPONENT ce_gen;
 
   --------------------------------------------------------------------------------
 
-  CONSTANT C_CNT_WIDTH  : INTEGER := 8;
+  CONSTANT G_RES        : INTEGER := 8;
+  CONSTANT G_NCH        : INTEGER := 8;
   SIGNAL clk            : STD_LOGIC := '0';
+  SIGNAL srst           : STD_LOGIC := '0';
+  SIGNAL ce             : STD_LOGIC;
 
-  SIGNAL pwm_ref_7      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_6      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_5      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_4      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_3      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_2      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_1      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
-  SIGNAL pwm_ref_0      : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref        : type_pwm_ref;
+  SIGNAL pwm_ref_7      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_6      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_5      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_4      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_3      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_2      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_1      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
+  SIGNAL pwm_ref_0      : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := (OTHERS => '0');
 
-  SIGNAL pwm_out        : STD_LOGIC_VECTOR (7 DOWNTO 0);
-  SIGNAL cnt_out        : STD_LOGIC_VECTOR ((C_CNT_WIDTH-1) DOWNTO 0);
+  SIGNAL pwm_out        : STD_LOGIC_VECTOR ((G_NCH-1) DOWNTO 0);
+  SIGNAL cnt_out        : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
 
   --------------------------------------------------------------------------------
 
-  CONSTANT C_CLK_PERIOD     : TIME := 20 ns;
-  SIGNAL F_sim_finished     : BOOLEAN := FALSE;
+  CONSTANT C_CLK_PERIOD      : TIME := 20 ns;
+  SIGNAL  F_sim_finished     : BOOLEAN := FALSE;
 
 ----------------------------------------------------------------------------------
 BEGIN
@@ -56,21 +70,39 @@ BEGIN
 
     pwm_driver_i : pwm_driver
         GENERIC MAP (
-            CNT_WIDTH           => C_CNT_WIDTH
+            G_RES               => G_RES,
+            G_NCH               => G_NCH
         )
         PORT MAP    (
             CLK                 => clk,
-            PWM_REF_7           => pwm_ref_7,
-            PWM_REF_6           => pwm_ref_6,
-            PWM_REF_5           => pwm_ref_5,
-            PWM_REF_4           => pwm_ref_4,
-            PWM_REF_3           => pwm_ref_3,
-            PWM_REF_2           => pwm_ref_2,
-            PWM_REF_1           => pwm_ref_1,
-            PWM_REF_0           => pwm_ref_0,
+            SRST                => srst,
+            CE                  => ce,
+            PWM_REF             => pwm_ref,
             PWM_OUT             => pwm_out,
             CNT_OUT             => cnt_out
   );
+  
+    ce_gen_i : ce_gen
+        GENERIC MAP(
+            G_DIV_FACT                  => 3
+        )
+        PORT MAP(
+            CLK                         => CLK,
+            SRST                        => SRST,
+            CE                          => '1',
+            CE_O                        => ce
+        );
+  --------------------------------------------------------------------------------
+
+    pwm_ref(0) <= pwm_ref_0;
+    pwm_ref(1) <= pwm_ref_1;
+    pwm_ref(2) <= pwm_ref_2;
+    pwm_ref(3) <= pwm_ref_3;
+    pwm_ref(4) <= pwm_ref_4;
+    pwm_ref(5) <= pwm_ref_5;
+    pwm_ref(6) <= pwm_ref_6;
+    pwm_ref(7) <= pwm_ref_7;
+    
 
   --------------------------------------------------------------------------------
 

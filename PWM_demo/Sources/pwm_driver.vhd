@@ -21,6 +21,8 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use WORK.PKG_CONSTANTS.ALL;
+use WORK.PKG_TYPES.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -31,22 +33,23 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+-- G_NCH and G_RES are defined in pkg_constants
+-- type_pwm_ref is defined in pkg_types as:
+--   TYPE type_pwm_ref IS ARRAY(G_NCH-1 DOWNTO 0) OF
+--      STD_LOGIC_VECTOR(G_RES-1 DOWNTO 0);                      
+
 entity pwm_driver is
     Generic (
-        CNT_WIDTH : INTEGER := 4
+        G_RES : INTEGER := 8;
+        G_NCH : INTEGER := 8
     );
     Port ( 
         CLK       : in  STD_LOGIC;
-        PWM_REF_7 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_6 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_5 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_4 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_3 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_2 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_1 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_REF_0 : in  STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0);
-        PWM_OUT   : out STD_LOGIC_VECTOR (7 DOWNTO 0);
-        CNT_OUT   : out STD_LOGIC_VECTOR ((CNT_WIDTH - 1) DOWNTO 0)
+        CE        : in  STD_LOGIC;
+        SRST      : in  STD_LOGIC;
+        PWM_REF   : in  type_pwm_ref;
+        PWM_OUT   : out STD_LOGIC_VECTOR ((G_NCH - 1) DOWNTO 0);
+        CNT_OUT   : out STD_LOGIC_VECTOR ((G_RES - 1) DOWNTO 0)
     );
 end pwm_driver;
 
@@ -64,29 +67,33 @@ architecture Behavioral of pwm_driver is
         );
     END COMPONENT;
     
-    SIGNAL sig_cnt : STD_LOGIC_VECTOR ((CNT_WIDTH - 1) downto 0);
+    SIGNAL sig_cnt : STD_LOGIC_VECTOR ((G_RES - 1) downto 0);
 
 begin
 
     nbit_bin_counter_i: nbit_bin_counter
         generic map (
-            CNT_WIDTH => CNT_WIDTH
+            CNT_WIDTH => G_RES
         )
         port map (
             CLK  => CLK,
-            SRST => '0',
-            CE   => '1',
+            SRST => SRST,
+            CE   => CE,
             CNT  => sig_cnt
         );    
-        
-    PWM_OUT(0) <= '1' WHEN (PWM_REF_0 >= sig_cnt) ELSE '0';
-    PWM_OUT(1) <= '1' WHEN (PWM_REF_1 >= sig_cnt) ELSE '0';  
-    PWM_OUT(2) <= '1' WHEN (PWM_REF_2 >= sig_cnt) ELSE '0';  
-    PWM_OUT(3) <= '1' WHEN (PWM_REF_3 >= sig_cnt) ELSE '0';  
-    PWM_OUT(4) <= '1' WHEN (PWM_REF_4 >= sig_cnt) ELSE '0';
-    PWM_OUT(5) <= '1' WHEN (PWM_REF_5 >= sig_cnt) ELSE '0';  
-    PWM_OUT(6) <= '1' WHEN (PWM_REF_6 >= sig_cnt) ELSE '0';  
-    PWM_OUT(7) <= '1' WHEN (PWM_REF_7 >= sig_cnt) ELSE '0'; 
+    
+    PROCESS (sig_cnt, PWM_REF) 
+    BEGIN
+        PWM_OUT <= (OTHERS => '0');
+    
+        FOR i IN 0 TO (G_NCH - 1) LOOP
+            IF (PWM_REF(i) > sig_cnt) THEN
+                PWM_OUT(i) <= '1';
+            ELSE
+                PWM_OUT(i) <= '0';
+            END IF;
+        END LOOP;
+    END PROCESS;
     
     CNT_OUT <= sig_cnt;
 

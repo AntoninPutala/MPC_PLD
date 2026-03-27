@@ -1,4 +1,4 @@
-----------------------------------------------------------------------------------
+
 -- Company: Brno University of Technology
 -- Engineer: Antonin Putala
 -- 
@@ -56,7 +56,11 @@ begin
             IF (SRST = '1') THEN
                 sig_count <= (OTHERS => '0');    
             ELSIF (CE = '1') THEN
-                sig_count <= sig_count + 1;
+                IF (sig_count = (2 ** CNT_WIDTH) - 2) THEN
+                    sig_count <= (OTHERS => '0');                 
+                ELSE
+                    sig_count <= sig_count + 1;
+                END IF;
             END IF;
         END IF;
     END PROCESS;
