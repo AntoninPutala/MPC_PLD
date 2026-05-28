@@ -1,0 +1,4 @@
+C:/Temp/246922/MPC_PLD/Zynq_work/rp_zynq/zynq_fsbl/build/CMakeFiles/fsbl.elf.dir
+C:/Temp/246922/MPC_PLD/Zynq_work/rp_zynq/zynq_fsbl/build/CMakeFiles/print_build_info.dir
+C:/Temp/246922/MPC_PLD/Zynq_work/rp_zynq/zynq_fsbl/build/CMakeFiles/edit_cache.dir
+C:/Temp/246922/MPC_PLD/Zynq_work/rp_zynq/zynq_fsbl/build/CMakeFiles/rebuild_cache.dir
