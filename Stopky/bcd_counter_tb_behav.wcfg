@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="bcd_counter_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="bcd_counter_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="181.826666 us"></ZoomStartTime>
+      <ZoomEndTime time="206.286667 us"></ZoomEndTime>
+      <Cursor1Time time="200.010000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="94"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject fp_name="/bcd_counter_tb/simulation_finished" type="other">
+      <obj_property name="ElementShortName">simulation_finished</obj_property>
+      <obj_property name="ObjectShortName">simulation_finished</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/ce_100Hz" type="logic">
+      <obj_property name="ElementShortName">ce_100Hz</obj_property>
+      <obj_property name="ObjectShortName">ce_100Hz</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_enable" type="logic">
+      <obj_property name="ElementShortName">cnt_enable</obj_property>
+      <obj_property name="ObjectShortName">cnt_enable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/disp_enable" type="logic">
+      <obj_property name="ElementShortName">disp_enable</obj_property>
+      <obj_property name="ObjectShortName">disp_enable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_reset" type="logic">
+      <obj_property name="ElementShortName">cnt_reset</obj_property>
+      <obj_property name="ObjectShortName">cnt_reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_0" type="array">
+      <obj_property name="ElementShortName">cnt_0[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_0[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_1" type="array">
+      <obj_property name="ElementShortName">cnt_1[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_1[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_2" type="array">
+      <obj_property name="ElementShortName">cnt_2[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_2[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/cnt_3" type="array">
+      <obj_property name="ElementShortName">cnt_3[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_3[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/C_CLK_PERIOD" type="other">
+      <obj_property name="ElementShortName">C_CLK_PERIOD</obj_property>
+      <obj_property name="ObjectShortName">C_CLK_PERIOD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/bcd_counter_i/cnt_0_reg" type="array">
+      <obj_property name="ElementShortName">cnt_0_reg[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_0_reg[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/bcd_counter_i/cnt_1_reg" type="array">
+      <obj_property name="ElementShortName">cnt_1_reg[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_1_reg[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/bcd_counter_i/cnt_2_reg" type="array">
+      <obj_property name="ElementShortName">cnt_2_reg[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_2_reg[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/bcd_counter_tb/bcd_counter_i/cnt_3_reg" type="array">
+      <obj_property name="ElementShortName">cnt_3_reg[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_3_reg[3:0]</obj_property>
+   </wvobject>
+</wave_config>

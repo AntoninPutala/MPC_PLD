@@ -36,12 +36,10 @@ BEGIN
 ----------------------------------------------------------------------------------
 
     PROCESS BEGIN
-        clk <= '0'; 
+        clk <= '0';
         WAIT FOR clk_period/2;
-        
         clk <= '1'; 
         WAIT FOR clk_period/2;
-        
         IF simulation_finished THEN
             WAIT;
         END IF;
@@ -50,10 +48,10 @@ BEGIN
   --------------------------------------------------------------------------------
 
     ce_gen_i : ce_gen
-        GENERIC MAP(
+        GENERIC MAP (
             G_DIV_FACT                  => 5
         )
-        PORT MAP(
+        PORT MAP (
             clk                         => clk,
             srst                        => srst,
             ce                          => ce,
