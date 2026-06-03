@@ -2,9 +2,9 @@
 -- Company:
 -- Engineer:
 --
--- Create Date: 06/03/2026 01:48:58 PM
+-- Create Date: 06/03/2026 02:26:31 PM
 -- Design Name:
--- Module Name: pkg_constants - Behavioral
+-- Module Name: pkg_types - Behavioral
 -- Project Name:
 -- Target Devices:
 -- Tool Versions:
@@ -19,6 +19,7 @@
 ----------------------------------------------------------------------------------
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
+USE WORK.PKG_CONSTANTS.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -29,13 +30,7 @@ USE IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-PACKAGE pkg_constants IS
-    CONSTANT G_NCH : POSITIVE := 8;
-    CONSTANT G_RES : POSITIVE := 8;     
-                                                               
-    CONSTANT PWM_0   : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := X"00";
-    CONSTANT PWM_1   : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := X"1F";
-    CONSTANT PWM_2   : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := X"3F";
-    CONSTANT PWM_3   : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := X"5F";
-    CONSTANT PWM_4   : STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0) := X"FF";
+PACKAGE pkg_types IS
+    TYPE type_pwm_ref IS ARRAY(G_NCH-1 DOWNTO 0) OF
+                        STD_LOGIC_VECTOR(G_RES-1 DOWNTO 0);
 END;

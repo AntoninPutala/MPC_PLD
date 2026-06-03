@@ -1,6 +1,8 @@
 ----------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE WORK.PKG_CONSTANTS.ALL;
+USE WORK.PKG_TYPES.ALL;
 ----------------------------------------------------------------------------------
 ENTITY rp_top IS
     PORT(
@@ -81,6 +83,24 @@ ARCHITECTURE Structural OF rp_top IS
             DISP_ENABLE         : OUT   STD_LOGIC
         );
     END COMPONENT;
+    
+    COMPONENT pwm_driver
+        PORT (
+            CLK                 : IN  STD_LOGIC;
+            PWM_REF             : IN  type_pwm_ref;
+            PWM_OUT             : OUT STD_LOGIC_VECTOR ((G_NCH-1) DOWNTO 0);
+            CNT_OUT             : OUT STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0)
+        );
+    END COMPONENT;
+    
+    COMPONENT pwm_fsm
+       	PORT (
+		    CLK     : IN  STD_LOGIC;
+		    CE      : IN  STD_LOGIC;
+		    DIR     : IN  STD_LOGIC;
+		    PWM_REF : OUT type_pwm_ref
+	    ); 
+    END COMPONENT;
 
   ------------------------------------------------------------------------------
 
@@ -93,11 +113,16 @@ ARCHITECTURE Structural OF rp_top IS
     SIGNAL cnt_enable         : STD_LOGIC;
     SIGNAL disp_enable        : STD_LOGIC;
     
+    SIGNAL ce_5Hz             : STD_LOGIC;
     SIGNAL ce_100Hz           : STD_LOGIC;
     SIGNAL ce_1000Hz          : STD_LOGIC; 
     
     SIGNAL btn_s_s            : STD_LOGIC;
     SIGNAL btn_l_c            : STD_LOGIC;
+    
+    SIGNAL pwm_ref            : type_pwm_ref;
+    SIGNAL pwm_out            : STD_LOGIC_VECTOR ((G_NCH-1) DOWNTO 0);   
+    SIGNAL pwm_ce             : STD_LOGIC;
 
 ----------------------------------------------------------------------------------
 BEGIN
@@ -154,7 +179,19 @@ BEGIN
             SRST                => '0',
             CE                  => '1',
             CE_O                => ce_1000Hz
+        );
+        
+    ce_gen_i_3 : ce_gen
+        generic map (
+            G_DIV_FACT          => 10000000
+        )                       
+        port map (
+            CLK                 => CLK,
+            SRST                => '0',
+            CE                  => '1',
+            CE_O                => ce_5Hz
         );  
+      
 
   --------------------------------------------------------------------------------
   -- button input module
@@ -216,9 +253,25 @@ BEGIN
 
   --------------------------------------------------------------------------------
   -- LED connection
+    pwm_fsm_I : pwm_fsm
+        port map (
+            CLK     => CLK,
+            CE      => pwm_ce,
+            DIR     => SW(0),
+            PWM_REF => pwm_ref
+        );
+  
+    pwm_driver_i : pwm_driver
+        port map (
+            CLK                 => CLK,
+            PWM_REF             => pwm_ref,
+            PWM_OUT             => pwm_out,
+            CNT_OUT             => open
+        );
+    
+    LED    <= pwm_out;
 
-    LED <= cnt_3 & cnt_2;
-
+    pwm_ce <= ce_5Hz AND SW(1);
 
 ----------------------------------------------------------------------------------
 END ARCHITECTURE Structural;

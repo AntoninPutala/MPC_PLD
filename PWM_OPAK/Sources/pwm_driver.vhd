@@ -20,6 +20,7 @@
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE WORK.PKG_CONSTANTS.ALL;
+USE WORK.PKG_TYPES.ALL;
 USE IEEE.MATH_REAL.ALL;
 
 -- Uncomment the following library declaration if using
@@ -34,14 +35,7 @@ USE IEEE.NUMERIC_STD.ALL;
 ENTITY pwm_driver IS
 	PORT (
 		CLK          : IN  STD_LOGIC;
-		PWM_REF_0    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_1    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_2    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_3    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_4    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_5    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_6    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
-		PWM_REF_7    : IN  STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0);
+		PWM_REF      : IN  type_pwm_ref;
 		PWM_OUT      : OUT STD_LOGIC_VECTOR ((G_NCH-1) DOWNTO 0);
 		CNT_OUT      : OUT STD_LOGIC_VECTOR ((G_RES-1) DOWNTO 0)
 	);
@@ -78,14 +72,20 @@ BEGIN
         CNT    => cnt
     );
     
-    PWM_OUT(0) <= '1' WHEN (cnt < PWM_REF_0) ELSE '0';
-    PWM_OUT(1) <= '1' WHEN (cnt < PWM_REF_1) ELSE '0';
-    PWM_OUT(2) <= '1' WHEN (cnt < PWM_REF_2) ELSE '0';
-    PWM_OUT(3) <= '1' WHEN (cnt < PWM_REF_3) ELSE '0';
-    PWM_OUT(4) <= '1' WHEN (cnt < PWM_REF_4) ELSE '0';
-    PWM_OUT(5) <= '1' WHEN (cnt < PWM_REF_5) ELSE '0';
-    PWM_OUT(6) <= '1' WHEN (cnt < PWM_REF_6) ELSE '0';
-    PWM_OUT(7) <= '1' WHEN (cnt < PWM_REF_7) ELSE '0';
+    PROCESS (cnt, PWM_REF)
+    BEGIN
+    
+        PWM_OUT <= (OTHERS => '0');
+    
+        loop_1 : FOR i IN 0 TO (G_NCH - 1) 
+        LOOP
+            IF (cnt < PWM_REF(i)) THEN 
+                PWM_OUT(i) <= '1';
+            ELSE
+                PWM_OUT(i) <= '0';
+            END IF;
+        END LOOP;
+    END PROCESS;
     
     CNT_OUT    <= cnt;
 
